@@ -1,14 +1,12 @@
 html, body {
   margin:0;
-  padding:0;
   height:100%;
-  overflow:hidden;
-  font-family: Arial Black;
-  background: radial-gradient(circle at top, #1a1f38, #070812);
+  background:#0b0f1a;
   color:white;
+  font-family:Arial Black;
+  overflow:hidden;
 }
 
-/* START SCREEN */
 #startScreen {
   position:absolute;
   width:100%;
@@ -17,55 +15,38 @@ html, body {
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  background: radial-gradient(circle, #1a1f38, #070812);
-  z-index:999;
+  background:radial-gradient(circle,#1a1f38,#070812);
 }
 
-#startScreen button {
-  padding:15px 25px;
-  font-size:18px;
-  border-radius:12px;
-  border:none;
-  background:linear-gradient(45deg,#00f0ff,#8a2be2);
-  color:white;
-}
-
-/* GAME UI */
-#gameUI {
-  display:none;
-  height:100%;
-}
-
-/* TOPBAR */
-.topbar {
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-  background:rgba(255,255,255,0.05);
-}
-
-/* CANVAS FULL RESPONSIVE */
-canvas {
-  display:block;
-  margin:auto;
-  width:90vw;
-  height:55vh;
-  background:black;
-  border-radius:16px;
-}
-
-/* QUESTION */
-#question {
-  text-align:center;
-  padding:10px;
-}
-
-/* BUTTONS */
 button {
-  margin:5px;
-  padding:14px;
+  padding:14px 20px;
   border:none;
   border-radius:12px;
   background:linear-gradient(45deg,#00f0ff,#8a2be2);
   color:white;
+}
+
+/* ANSWER STATES */
+.correct {
+  background:green !important;
+  animation: pop 0.3s;
+}
+
+.wrong {
+  background:red !important;
+  animation: shake 0.2s;
+}
+
+@keyframes shake {
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+}
+
+@keyframes pop {
+  0%{transform:scale(1)}
+  50%{transform:scale(1.1)}
+  100%{transform:scale(1)}
 }
