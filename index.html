@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Tetris Pro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>🏆 Skor: <span id="score">0</span></div>
+  <div>⚡ Level: <span id="level">1</span></div>
+</div>
+
+<h2>🧠 Quiz Tetris Pro</h2>
+
+<canvas id="game" width="240" height="400"></canvas>
+
+<div id="question"></div>
+<div id="answers"></div>
+
+<div class="controls">
+  <button onclick="move(-1)">⬅️</button>
+  <button onclick="rotate()">🔄</button>
+  <button onclick="move(1)">➡️</button>
+</div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
