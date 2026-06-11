@@ -4,140 +4,156 @@ const ctx = canvas.getContext("2d");
 canvas.width = 300;
 canvas.height = 500;
 
-const ROWS = 20;
-const COLS = 12;
-const SIZE = 20;
-
-let board = Array.from({length:ROWS},()=>Array(COLS).fill(0));
-
 let score = 0;
 let level = 1;
-
 let canMove = false;
 let dropStarted = false;
 
-const shapes = [
-  [[1,1,1,1]],
-  [[1,1],[1,1]],
-  [[0,1,0],[1,1,1]],
-  [[1,0,0],[1,1,1]]
-];
+let currentQ = null;
 
-let piece;
-
-function newPiece(){
-  return {
-    shape: shapes[Math.floor(Math.random()*shapes.length)],
-    x:4,
-    y:0
-  };
-}
-
-piece = newPiece();
-
-// ---------------- START SYSTEM ----------------
+// =======================
+// 🎮 START GAME
+// =======================
 function startGame(){
   document.getElementById("startScreen").style.display="none";
   document.getElementById("gameUI").style.display="block";
 
-  askQuestion();
+  loadAIQuestion();
 
   setTimeout(()=>{
-    canMove=true;
-    dropStarted=true;
+    canMove = true;
+    dropStarted = true;
     loop();
-  },10000);
+  },8000);
 }
 
-// ---------------- DRAW ----------------
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+// =======================
+// 🤖 GEMINI AI ENGINE
+// =======================
+async function getGeminiQuestion(){
 
-  board.forEach((r,y)=>{
-    r.forEach((v,x)=>{
-      if(v){
-        ctx.fillStyle="#00f0ff";
-        ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);
-      }
-    });
-  });
+  const API_KEY = "AQ.Ab8RN6JZfZ7oOQRJqJw_-7eXKvOLg_Lz957-bz6Gh-Gs7aDFhg";
 
-  piece.shape.forEach((r,dy)=>{
-    r.forEach((v,dx)=>{
-      if(v){
-        ctx.fillStyle="#8a2be2";
-        ctx.fillRect((piece.x+dx)*SIZE,(piece.y+dy)*SIZE,SIZE,SIZE);
-      }
-    });
-  });
+  const prompt = `
+Türkçe bir genel kültür sorusu üret.
+
+ZORUNLU FORMAT:
+{
+  "question": "string",
+  "answers": ["A","B","C","D"],
+  "correct": 0
 }
 
-// ---------------- MOVE ----------------
-function move(dir){
-  if(!canMove) return;
-  piece.x+=dir;
-  draw();
-}
+Kurallar:
+- sadece JSON döndür
+- açıklama yazma
+- 4 şık olmalı
+`;
 
-// ---------------- ROTATE ----------------
-function rotate(){
-  if(!canMove) return;
-  let newShape = piece.shape[0].map((_,i)=>
-    piece.shape.map(r=>r[i]).reverse()
+  const res = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY,
+    {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        contents:[{parts:[{text:prompt}]}]
+      })
+    }
   );
-  piece.shape=newShape;
-  draw();
+
+  const data = await res.json();
+
+  let text = data.candidates[0].content.parts[0].text;
+
+  try {
+    return JSON.parse(text);
+  } catch(e) {
+    console.log("JSON fix retry");
+    return await getGeminiQuestion();
+  }
 }
 
-// ---------------- DROP ----------------
-function drop(){
-  piece.y++;
-  draw();
-}
+// =======================
+// 🧠 LOAD QUESTION
+// =======================
+async function loadAIQuestion(){
 
-// ---------------- LOOP ----------------
-function loop(){
-  if(dropStarted) drop();
-  setTimeout(loop,800 - level*50);
-}
+  currentQ = await getGeminiQuestion();
 
-// ---------------- TR QUIZ FIX ----------------
-async function fetchQ(){
-  let r = await fetch("https://opentdb.com/api.php?amount=1&type=multiple&lang=tr");
-  let d = await r.json();
-  let q=d.results[0];
+  document.getElementById("question").innerText =
+    currentQ.question;
 
-  let ans=[...q.incorrect_answers,q.correct_answer];
-  ans.sort(()=>Math.random()-0.5);
-
-  return {
-    q:q.question,
-    a:ans,
-    c:ans.indexOf(q.correct_answer)
-  };
-}
-
-async function askQuestion(){
-  let q = await fetchQ();
-
-  document.getElementById("question").innerText=q.q;
-
-  let div=document.getElementById("answers");
+  let div = document.getElementById("answers");
   div.innerHTML="";
 
-  q.a.forEach((a,i)=>{
-    let b=document.createElement("button");
-    b.innerText=a;
+  currentQ.answers.forEach((a,i)=>{
+    let b = document.createElement("button");
+    b.innerText = a;
 
-    b.onclick=()=>{
-      if(i===q.c){
-        canMove=true;
-        alert("Doğru!");
-      } else {
-        alert("Yanlış!");
-      }
-    };
+    b.onclick = ()=>checkAnswer(b,i);
 
     div.appendChild(b);
   });
+}
+
+// =======================
+// 🎯 ANSWER SYSTEM
+// =======================
+function checkAnswer(btn,i){
+
+  let buttons = document.querySelectorAll("#answers button");
+
+  if(i === currentQ.correct){
+
+    btn.style.background="green";
+
+    score += 50;
+    document.getElementById("score").innerText=score;
+
+    canMove = true;
+
+    setTimeout(()=>{
+      loadAIQuestion();
+    },600);
+
+  } else {
+
+    btn.style.background="red";
+    shake();
+
+    setTimeout(()=>{
+      buttons.forEach(b=>{
+        b.style.background="";
+      });
+    },400);
+  }
+}
+
+// =======================
+// ⚡ SHAKE EFFECT
+// =======================
+function shake(){
+  document.body.style.transform="translateX(5px)";
+  setTimeout(()=>document.body.style.transform="translateX(-5px)",50);
+  setTimeout(()=>document.body.style.transform="translateX(0)",100);
+}
+
+// =======================
+// 🎮 SIMPLE TETRIS LOOP (placeholder engine)
+// =======================
+let piece = {x:4,y:0};
+
+function loop(){
+  if(dropStarted){
+    piece.y++;
+    draw();
+  }
+
+  setTimeout(loop,800 - level*50);
+}
+
+function draw(){
+  ctx.clearRect(0,0,300,500);
+  ctx.fillStyle="#00f0ff";
+  ctx.fillRect(piece.x*20,piece.y*20,20,20);
 }
