@@ -2,29 +2,39 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Tetris Candy Edition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Quiz Tetris</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="topbar">
-  <div>🏆 Skor: <span id="score">0</span></div>
-  <div>⚡ Level: <span id="level">1</span></div>
+<!-- START SCREEN -->
+<div id="startScreen">
+  <h1>🧠 Quiz Tetris</h1>
+  <p>Doğru cevap ver → blokları kontrol et</p>
+  <button onclick="startGame()">START</button>
 </div>
 
-<h2>🧠 Quiz Tetris</h2>
+<!-- GAME UI -->
+<div id="gameUI">
 
-<canvas id="game" width="240" height="400"></canvas>
+  <div class="topbar">
+    <div>🏆 Skor: <span id="score">0</span></div>
+    <div>⚡ Level: <span id="level">1</span></div>
+  </div>
 
-<div id="question"></div>
-<div id="answers"></div>
+  <canvas id="game"></canvas>
 
-<div class="controls">
-  <button onclick="move(-1)">⬅️</button>
-  <button onclick="rotate()">🔄</button>
-  <button onclick="move(1)">➡️</button>
+  <div id="question"></div>
+  <div id="answers"></div>
+
+  <div class="controls">
+    <button onclick="move(-1)">⬅️</button>
+    <button onclick="rotate()">🔄</button>
+    <button onclick="move(1)">➡️</button>
+  </div>
+
 </div>
 
 <script src="game.js"></script>
