@@ -1,6 +1,9 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+canvas.width = 300;
+canvas.height = 500;
+
 const ROWS = 20;
 const COLS = 12;
 const SIZE = 20;
@@ -20,9 +23,9 @@ const shapes = [
   [[1,0,0],[1,1,1]]
 ];
 
-let piece = newPieceObj();
+let piece;
 
-function newPieceObj(){
+function newPiece(){
   return {
     shape: shapes[Math.floor(Math.random()*shapes.length)],
     x:4,
@@ -30,23 +33,25 @@ function newPieceObj(){
   };
 }
 
-// ------------------ SOUND ------------------
-function sound(type){
-  let a = new Audio();
-  if(type==="ok") a.src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg";
-  if(type==="bad") a.src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg";
-  a.play();
+piece = newPiece();
+
+// ---------------- START SYSTEM ----------------
+function startGame(){
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("gameUI").style.display="block";
+
+  askQuestion();
+
+  setTimeout(()=>{
+    canMove=true;
+    dropStarted=true;
+    loop();
+  },10000);
 }
 
-// ------------------ SHAKE ------------------
-function shake(){
-  document.body.style.transform="translate(3px,3px)";
-  setTimeout(()=>document.body.style.transform="translate(0,0)",80);
-}
-
-// ------------------ DRAW ------------------
+// ---------------- DRAW ----------------
 function draw(){
-  ctx.clearRect(0,0,240,400);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   board.forEach((r,y)=>{
     r.forEach((v,x)=>{
@@ -67,91 +72,38 @@ function draw(){
   });
 }
 
-// ------------------ COLLISION ------------------
-function collide(){
-  return piece.shape.some((r,dy)=>
-    r.some((v,dx)=>{
-      let x=piece.x+dx;
-      let y=piece.y+dy;
-      return v && (y>=ROWS || x<0 || x>=COLS || board[y]?.[x]);
-    })
-  );
-}
-
-// ------------------ MERGE ------------------
-function merge(){
-  piece.shape.forEach((r,dy)=>{
-    r.forEach((v,dx)=>{
-      if(v) board[piece.y+dy][piece.x+dx]=1;
-    });
-  });
-}
-
-// ------------------ DROP ------------------
-function drop(){
-  piece.y++;
-  if(collide()){
-    piece.y--;
-    merge();
-    clearLines();
-    piece = newPieceObj();
-    askQuestion();
-  }
-  draw();
-}
-
-// ------------------ MOVE ------------------
+// ---------------- MOVE ----------------
 function move(dir){
   if(!canMove) return;
   piece.x+=dir;
-  if(collide()) piece.x-=dir;
-  shake();
   draw();
 }
 
-// ------------------ ROTATE ------------------
+// ---------------- ROTATE ----------------
 function rotate(){
   if(!canMove) return;
-
   let newShape = piece.shape[0].map((_,i)=>
     piece.shape.map(r=>r[i]).reverse()
   );
-
-  let old = piece.shape;
   piece.shape=newShape;
-
-  if(collide()) piece.shape=old;
-
   draw();
 }
 
-// ------------------ CLEAR LINES ------------------
-function clearLines(){
-  let lines=0;
-
-  board = board.filter(r=>{
-    if(r.every(v=>v)){
-      lines++;
-      return false;
-    }
-    return true;
-  });
-
-  while(board.length<ROWS)
-    board.unshift(Array(COLS).fill(0));
-
-  if(lines){
-    score+=lines*100;
-    document.getElementById("score").innerText=score;
-
-    level = Math.floor(score/500)+1;
-    document.getElementById("level").innerText=level;
-  }
+// ---------------- DROP ----------------
+function drop(){
+  piece.y++;
+  draw();
 }
 
-// ------------------ QUIZ ------------------
+// ---------------- LOOP ----------------
+function loop(){
+  if(dropStarted) drop();
+  setTimeout(loop,800 - level*50);
+}
+
+// ---------------- TR QUIZ FIX ----------------
 async function fetchQ(){
-  let r = await fetch("https://opentdb.com/api.php?amount=1&type=multiple");
+  let r = await fetch("https://opentdb.com/api.php?amount=1&type=multiple&lang=tr");
   let d = await r.json();
   let q=d.results[0];
 
@@ -168,7 +120,7 @@ async function fetchQ(){
 async function askQuestion(){
   let q = await fetchQ();
 
-  document.getElementById("question").innerHTML=q.q;
+  document.getElementById("question").innerText=q.q;
 
   let div=document.getElementById("answers");
   div.innerHTML="";
@@ -180,34 +132,12 @@ async function askQuestion(){
     b.onclick=()=>{
       if(i===q.c){
         canMove=true;
-        sound("ok");
-        shake();
+        alert("Doğru!");
       } else {
-        sound("bad");
-        shake();
+        alert("Yanlış!");
       }
     };
 
     div.appendChild(b);
   });
 }
-
-// ------------------ LOOP ------------------
-function loop(){
-  if(dropStarted) drop();
-  setTimeout(loop,800 - level*50);
-}
-
-// ------------------ START ------------------
-function start(){
-  askQuestion();
-
-  setTimeout(()=>{
-    dropStarted=true;
-    canMove=true;
-    loop();
-  },10000);
-}
-
-start();
-draw();
