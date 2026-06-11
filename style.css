@@ -1,10 +1,9 @@
-html, body {
+body {
   margin:0;
-  height:100%;
+  font-family: Arial Black;
   background:#0b0f1a;
   color:white;
-  font-family:Arial Black;
-  overflow:hidden;
+  text-align:center;
 }
 
 #startScreen {
@@ -12,10 +11,10 @@ html, body {
   width:100%;
   height:100%;
   display:flex;
-  flex-direction:column;
   justify-content:center;
   align-items:center;
-  background:radial-gradient(circle,#1a1f38,#070812);
+  flex-direction:column;
+  background:#070812;
 }
 
 button {
@@ -26,27 +25,9 @@ button {
   color:white;
 }
 
-/* ANSWER STATES */
-.correct {
-  background:green !important;
-  animation: pop 0.3s;
-}
-
-.wrong {
-  background:red !important;
-  animation: shake 0.2s;
-}
-
-@keyframes shake {
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-5px)}
-  50%{transform:translateX(5px)}
-  75%{transform:translateX(-5px)}
-  100%{transform:translateX(0)}
-}
-
-@keyframes pop {
-  0%{transform:scale(1)}
-  50%{transform:scale(1.1)}
-  100%{transform:scale(1)}
+canvas {
+  margin-top:20px;
+  background:black;
+  width:90vw;
+  height:50vh;
 }
